@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# Regenerate the AI quota records for the daniel.quotas bar widget.
+# Mirrors omarchy-agent-usage-update: each collector prints one
+# display-ready JSON record, written atomically into the usage directory
+# the panel watches. Credentials come from omp's credential database
+# (~/.omp/agent/agent.db) and ~/.config/omarchy/quotas.json.
+
+set -u
+
+USAGE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/quotas/usage"
+COLLECTORS_DIR="$(cd "$(dirname "$0")" && pwd)/collectors"
+STOCK_CODEX="/usr/share/omarchy/bin/omarchy-agent-usage-codex"
+
+mkdir -p "$USAGE_DIR"
+
+flags=()
+only=()
+declare -A excluded
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  --force | --limits-only) flags+=("$1") ;;
+  --except)
+    excluded[$2]=1
+    shift
+    ;;
+  *) only+=("$1") ;;
+  esac
+  shift
+done
+
+wanted() {
+  local agent="$1"
+  [[ -n ${excluded[$agent]:-} ]] && return 1
+  (( ${#only[@]} == 0 )) && return 0
+  local candidate
+  for candidate in "${only[@]}"; do
+    [[ $candidate == "$agent" ]] && return 0
+  done
+  return 1
+}
+
+collect() {
+  local agent="$1"
+  shift
+  local record tmp
+  if ! record=$("$@") || [[ -z $record ]] || ! jq -e . >/dev/null 2>&1 <<<"$record"; then
+    echo "quotas-usage-update: $agent collector failed" >&2
+    return 1
+  fi
+  tmp=$(mktemp "$USAGE_DIR/.$agent.XXXXXX")
+  printf '%s\n' "$record" >"$tmp"
+  mv "$tmp" "$USAGE_DIR/$agent.json"
+}
+collect_now() {
+  local agent="$1"
+  shift
+  wanted "$agent" || return 0
+  collect "$agent" "$@" "${flags[@]}" &
+  pids+=($!)
+}
+
+pids=()
+
+# Codex rides the stock collector (limits via the Codex app-server RPC).
+[[ -x $STOCK_CODEX ]] && collect_now codex "$STOCK_CODEX"
+
+collect_now zai python3 "$COLLECTORS_DIR/zai_quota.py" --agent zai
+collect_now zhipu-cn python3 "$COLLECTORS_DIR/zai_quota.py" --agent zhipu-cn
+collect_now zhipu-credit python3 "$COLLECTORS_DIR/zai_quota.py" --agent zhipu-credit
+collect_now kimi python3 "$COLLECTORS_DIR/kimi_quota.py"
+collect_now aliyun python3 "$COLLECTORS_DIR/aliyun_quota.py"
+collect_now mistral python3 "$COLLECTORS_DIR/mistral_quota.py"
+collect_now deepseek python3 "$COLLECTORS_DIR/balance_quota.py" --agent deepseek
+collect_now openrouter python3 "$COLLECTORS_DIR/balance_quota.py" --agent openrouter
+collect_now mimo python3 "$COLLECTORS_DIR/balance_quota.py" --agent mimo
+
+status=0
+for pid in "${pids[@]:-}"; do
+  wait "$pid" || status=1
+done
+exit $status

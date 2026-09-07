@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "id": "daniel.quotas",
+  "name": "AI Quotas",
+  "version": "1.0.0",
+  "author": "daniel",
+  "license": "MIT",
+  "description": "Quota windows and prepaid credit for every AI provider configured on this machine: coding plans (Z.ai, Zhipu CN, Codex, Kimi, Mistral, Aliyun) and pay-as-you-go balances (DeepSeek, OpenRouter, MiMo, BigModel).",
+  "kinds": [
+    "bar-widget"
+  ],
+  "activation": "on-demand",
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "AI Quotas",
+    "description": "One bar icon and one panel: rate-limit meters with resets for every coding plan, plus prepaid credit gauges for usage-based API keys.",
+    "category": "AI",
+    "aliases": [
+      "quotas",
+      "ai-quotas",
+      "quota-monitor"
+    ],
+    "allowMultiple": false,
+    "defaults": {
+      "providers": {
+        "codex": {
+          "enabled": true
+        },
+        "zai": {
+          "enabled": true
+        },
+        "zhipu-cn": {
+          "enabled": true
+        },
+        "zhipu-credit": {
+          "enabled": true
+        },
+        "kimi": {
+          "enabled": true
+        },
+        "aliyun": {
+          "enabled": true
+        },
+        "mistral": {
+          "enabled": true
+        },
+        "deepseek": {
+          "enabled": true
+        },
+        "openrouter": {
+          "enabled": true
+        },
+        "mimo": {
+          "enabled": true
+        }
+      },
+      "refreshIntervalSec": 900,
+      "syncMode": "Off",
+      "syncDir": "",
+      "syncFileName": "",
+      "syncDeviceId": ""
+    },
+    "schema": [
+      {
+        "key": "refreshIntervalSec",
+        "type": "integer",
+        "label": "Refresh interval (seconds)",
+        "min": 60,
+        "max": 3600,
+        "step": 60,
+        "defaultValue": 900
+      },
+      {
+        "key": "syncMode",
+        "type": "enum",
+        "label": "Synced aggregation",
+        "options": [
+          "Off",
+          "On"
+        ],
+        "defaultValue": "Off",
+        "description": "When On, write this machine's local usage snapshot and merge snapshots from other machines."
+      },
+      {
+        "key": "syncDir",
+        "type": "path",
+        "label": "Sync folder",
+        "defaultValue": "",
+        "description": "A folder synced by Syncthing, Dropbox, rsync, etc."
+      },
+      {
+        "key": "syncFileName",
+        "type": "string",
+        "label": "Snapshot file name",
+        "defaultValue": "",
+        "description": "Optional. Defaults to <hostname>.json."
+      },
+      {
+        "key": "syncDeviceId",
+        "type": "string",
+        "label": "Device id",
+        "defaultValue": "",
+        "description": "Optional stable device name used inside synced aggregate snapshots."
+      }
+    ]
+  }
+}

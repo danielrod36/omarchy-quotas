@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Write one provider's credentials into ~/.config/omarchy/quotas.json.
+# Usage: config-set <section> [key value]...
+# The section is merged key by key; other sections and keys are preserved.
+
+set -euo pipefail
+
+CONFIG="${QUOTAS_CONFIG:-$HOME/.config/omarchy/quotas.json}"
+
+[[ $# -ge 1 ]] || { echo "usage: config-set <section> [key value]..." >&2; exit 2; }
+section="$1"; shift
+[[ $(( $# % 2 )) -eq 0 ]] || { echo "key/value pairs must be balanced" >&2; exit 2; }
+
+mkdir -p "$(dirname "$CONFIG")"
+[[ -f $CONFIG ]] || echo '{}' >"$CONFIG"
+jq -e . "$CONFIG" >/dev/null 2>&1 || echo '{}' >"$CONFIG"
+
+# JSON strings cannot be injected safely via string building, so pass every
+# key and value as a jq variable and reference them in the merge object.
+args=(--arg section "$section")
+refs=""
+n=0
+while [[ $# -gt 0 ]]; do
+  n=$((n + 1))
+  args+=(--arg "key_$n" "$1" --arg "val_$n" "$2")
+  refs+="\$key_$n: \$val_$n, "
+  shift 2
+done
+refs="${refs%, }"
+
+tmp=$(mktemp "$CONFIG.XXXXXX")
+jq "${args[@]}" ".[\$section] = ((.[\$section] // {}) + {$refs})" "$CONFIG" >"$tmp"
+chmod 600 "$tmp"
+mv "$tmp" "$CONFIG"
+echo "ok"
