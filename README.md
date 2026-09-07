@@ -1,5 +1,20 @@
 # AI Quotas
 
+An [Omarchy](https://omarchy.org/) bar plugin — install by cloning this repo
+and linking it into the plugin directory:
+
+```bash
+git clone https://github.com/danielrod36/omarchy-quotas ~/Projects/omarchy-quotas
+ln -s ~/Projects/omarchy-quotas ~/.config/omarchy/plugins/daniel.quotas
+omarchy restart shell
+```
+
+Then add `{"id": "daniel.quotas"}` to a bar section in
+`~/.config/omarchy/shell.json`. The panel is personal-tooling: coding-plan
+credentials are read from [omp](https://github.com/can1357/oh-my-pi)'s
+credential database, and everything else from
+`~/.config/omarchy/quotas.json` (fillable from the panel's own setup page).
+
 One bar icon and one panel for every AI provider configured on this machine:
 coding-plan quota windows with resets, and prepaid credit ledgers for
 usage-based API keys. Based on Omarchy's stock `omarchy.agents` widget — same
