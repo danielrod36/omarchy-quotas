@@ -161,7 +161,7 @@ def credit_balance(report: dict, currency: str) -> dict | None:
     }
 
 
-def scan(agent: str) -> dict:
+def scan(agent: str, limits_only: bool = False) -> dict:
     target = TARGETS[agent]
     origin = target["origin"]
     key = credential(agent)
@@ -178,9 +178,10 @@ def scan(agent: str) -> dict:
         balance = credit_balance(report, target["currency"])
         if balance:
             record["balance"] = balance
-        usage = fetch_model_usage(origin, key)
-        if usage:
-            record.update(summarize_zai_model_usage(usage))
+        if not limits_only:
+            usage = fetch_model_usage(origin, key)
+            if usage:
+                record.update(summarize_zai_model_usage(usage))
         if not balance and not record["recentDays"]:
             raise Unavailable("Zhipu credit report carried no ledger and no usage")
         return record
@@ -230,9 +231,10 @@ def scan(agent: str) -> dict:
             balance = credit_balance(report, target["currency"])
             if balance:
                 record["balance"] = balance
-    usage = fetch_model_usage(origin, key)
-    if usage:
-        record.update(summarize_zai_model_usage(usage))
+    if not limits_only:
+        usage = fetch_model_usage(origin, key)
+        if usage:
+            record.update(summarize_zai_model_usage(usage))
 
     return record
 
@@ -246,7 +248,7 @@ def main() -> int:
     target = TARGETS[args.agent]
 
     try:
-        record = scan(args.agent)
+        record = scan(args.agent, limits_only=args.limits_only)
     except AuthError as error:
         setup = SETUP.get(args.agent)
         record = base_record(args.agent, target["name"], configured=not error.missing,

@@ -350,11 +350,25 @@ Panel {
   }
 
   // Only speaks up when the numbers cover more than this machine.
+  // How stale the current provider's numbers are, so a lagging window reads
+  // as lag, never as truth.
+  function updatedAgoText(p) {
+    if (!p) return ""
+    var ms = new Date(String(p.updatedAt || "")).getTime()
+    if (!isFinite(ms)) return ""
+    var age = Math.max(0, root.nowMs - ms)
+    var minutes = Math.floor(age / 60000)
+    if (minutes < 1) return "Updated just now"
+    if (minutes < 60) return "Updated " + minutes + " min ago"
+    var hours = Math.floor(minutes / 60)
+    return "Updated " + hours + "h " + (minutes % 60) + "m ago"
+  }
+
   function footerText() {
     if (usage.syncStatusText !== "") return usage.syncStatusText
     if (provider && provider.syncEnabled && provider.syncDeviceCount > 0)
       return "Merged from " + provider.syncDeviceCount + " device" + (provider.syncDeviceCount === 1 ? "" : "s")
-    return ""
+    return updatedAgoText(provider)
   }
 
   // Agents that ship a white mark carry an `assets/<id>-light.svg` twin for
@@ -425,6 +439,15 @@ Panel {
     running: root.opened
     repeat: true
     onTriggered: root.nowMs = Date.now()
+  }
+
+  // Quota windows move while the panel is being read; re-poll the cheap
+  // endpoints every minute instead of waiting out the 5-minute timer.
+  Timer {
+    interval: 60000
+    running: root.opened && !root.configMode
+    repeat: true
+    onTriggered: usage.refreshLimits()
   }
 
   IpcHandler {

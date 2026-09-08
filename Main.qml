@@ -272,6 +272,7 @@ Item {
       providerName: String(record.name || record.id),
       ready: record.ready === true || synced,
       configured: record.configured === true,
+      updatedAt: String(record.updatedAt || ""),
       setupSection: String(record.setupSection || record.id),
       setupGuide: Array.isArray(record.setupGuide) ? record.setupGuide : [],
       setupInputs: Array.isArray(record.setupInputs) ? record.setupInputs : [],
