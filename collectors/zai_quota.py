@@ -205,7 +205,11 @@ def scan(agent: str, limits_only: bool = False) -> dict:
         if percent is None:
             used, cap = number(row.get("currentValue")), number(row.get("usage"))
             percent = (used / cap * 100.0) if cap > 0 else None
-        if kind == "TIME_LIMIT":
+        if kind == "TOKENS_LIMIT":
+            entry = limit_entry(
+                f"{number(row.get('number')) or 5}h window", percent, row.get("nextResetTime"), "Session"
+            )
+        elif kind == "TIME_LIMIT":
             # Per-tool usage inside the monthly MCP-tool lane: what actually
             # ate the allowance (search-prime / web-reader / zread).
             for detail in row.get("usageDetails") or []:
@@ -217,10 +221,6 @@ def scan(agent: str, limits_only: bool = False) -> dict:
                     if amount > 0:
                         session_breakdown.append((str(detail["modelCode"]), amount))
             session_breakdown.sort(key=lambda item: item[1], reverse=True)
-            entry = limit_entry(
-                f"{number(row.get('number')) or 5}h window", percent, row.get("nextResetTime"), "Session"
-            )
-        elif kind == "TIME_LIMIT":
             label, title = zai_window_label(row.get("unit"), row.get("number"))
             entry = limit_entry(label, percent, row.get("nextResetTime"), title)
             # The legacy z.ai/Zhipu subscriptions carry no monthly or weekly
