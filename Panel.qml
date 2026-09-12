@@ -85,6 +85,24 @@ Panel {
       windows.push({ label: String(entry.label || ""), title: String(entry.title || windowTitle(entry.label)),
         percent: percent, resetAt: String(entry.resetsAt || ""), span: windowSpanMs(entry.label) })
     }
+    // A single primary window (Z.ai/Zhipu: the 5h session) can still earn a
+    // second bar from its secondary lane - the monthly MCP-tool allowance -
+    // shown for context but marked auxiliary: it never becomes the binding
+    // number, the row's reset countdown, or an alarm source.
+    if (windows.length === 1) {
+      for (var j = 0; j < list.length; j++) {
+        var extra = list[j] || {}
+        if (extra.secondary !== true) continue
+        var extraPercent = Number(extra.percent)
+        if (extraPercent < 0) continue
+        windows.push({
+          label: String(extra.label || ""), title: "Tools",
+          percent: extraPercent, resetAt: String(extra.resetsAt || ""),
+          span: windowSpanMs(extra.label), auxiliary: true,
+        })
+        break
+      }
+    }
     if (windows.length < 2) return []
     windows.sort(function(a, b) { return a.span - b.span })
     if (windows[0] === windows[windows.length - 1]) return []
@@ -1210,6 +1228,8 @@ Panel {
     // reset matters.
     readonly property var nextResetWindow: {
       if (halves.length !== 2) return null
+      // An auxiliary half (tool lane) never redirects the countdown.
+      if (halves[1].auxiliary === true) return halves[0]
       return halves[1].percent >= 0.999 ? halves[1] : halves[0]
     }
     readonly property bool isBalance: primary && primary.kind === "balance"
