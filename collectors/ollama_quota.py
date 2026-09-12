@@ -90,7 +90,10 @@ def scan() -> dict:
         sorted(buckets.items(), key=lambda item: bucket_rank(item[0]))
     ):
         usage = bucket.get("usage") if isinstance(bucket, dict) else None
-        percent = number(usage) if usage is not None else None
+        try:
+            percent = float(usage) if usage is not None else None
+        except (TypeError, ValueError):
+            percent = None
         if percent is None:
             continue
         title = TITLES.get(str(name).lower(), str(name).capitalize())

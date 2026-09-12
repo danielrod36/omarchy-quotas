@@ -249,6 +249,14 @@ Panel {
     return currencyPrefix(currency) + amount.toFixed(2)
   }
 
+  // Endpoints report fractions (Ollama: 3 decimals); keep one decimal of
+  // that precision visible below 10% so "0.7% used" never reads as "0%".
+  function formatPercent(value) {
+    var percent = value * 100
+    if (percent >= 0 && percent < 10) return percent.toFixed(1) + "%"
+    return Math.round(percent) + "%"
+  }
+
   function balanceDetailText(b) {
     if (!b || !(b.funded > 0)) return ""
     var text = formatMoney(b.spent, b.currency) + " spent of " + formatMoney(b.funded, b.currency) + " funded"
@@ -979,7 +987,7 @@ Panel {
         id: limitValue
         textFormat: Text.PlainText
         text: limitRow.window && limitRow.window.percent >= 0
-          ? Math.round(limitRow.window.percent * 100) + "%"
+          ? root.formatPercent(limitRow.window.percent)
           : "—"
         color: limitRow.alarming ? root.urgent : root.foreground
         font.family: root.fontFamily
@@ -1261,7 +1269,7 @@ Panel {
             if (row.isBalance)
               return root.formatMoney(row.balance ? row.balance.remaining : 0,
                                       row.balance ? row.balance.currency : "USD")
-            return row.percent >= 0 ? Math.round(row.percent * 100) + "%" : "-"
+            return row.percent >= 0 ? root.formatPercent(row.percent) : "-"
           }
           visible: text !== ""
           color: row.halves.length === 2 ? root.dim
@@ -1310,7 +1318,7 @@ Panel {
               Text {
                 id: halfValue
                 textFormat: Text.PlainText
-                text: half.modelData ? Math.round(half.modelData.percent * 100) + "%" : ""
+                text: half.modelData ? root.formatPercent(half.modelData.percent) : ""
                 color: half.modelData && half.modelData.percent >= 0.9 ? root.urgent : root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.caption
