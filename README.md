@@ -47,6 +47,14 @@ quota-style meters):
 | OpenRouter | prepaid credits | management key → `openrouter.ai/api/v1/credits` |
 | MiMo | Xiaomi MiMo | console cookie → `platform.xiaomimimo.com/api/v1/balance` |
 
+Extra context the endpoints volunteer beyond the core meters: Z.ai/Zhipu
+coding tabs list what ate the monthly tool lane (`search-prime 95 ·
+web-reader 5`, from `usageDetails`), and the Kimi tab shows its booster
+wallet — the pay-as-you-go overflow balance beside the subscription
+(`boosterWallet.balance`, UNIT_CURRENCY at 1e8 per CNY). Kimi also reports
+a `parallel` concurrency limit and DeepSeek one balance row per currency
+(USD + CNY); neither is displayed.
+
 The Z.ai tab also carries its account's pay-as-you-go ledger when one exists
 (`api.z.ai/api/biz/account/query-customer-account-report`, USD) — a $0.00
 wallet never fakes a prepaid line onto a subscription tab. Z.ai and Zhipu

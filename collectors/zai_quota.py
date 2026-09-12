@@ -196,6 +196,7 @@ def scan(agent: str, limits_only: bool = False) -> dict:
         record["tierLabel"] = "GLM Coding"
 
     limits = []
+    session_breakdown = []  # monthly tool-lane contributors
     for row in data.get("limits") or []:
         if not isinstance(row, dict):
             continue
@@ -204,7 +205,18 @@ def scan(agent: str, limits_only: bool = False) -> dict:
         if percent is None:
             used, cap = number(row.get("currentValue")), number(row.get("usage"))
             percent = (used / cap * 100.0) if cap > 0 else None
-        if kind == "TOKENS_LIMIT":
+        if kind == "TIME_LIMIT":
+            # Per-tool usage inside the monthly MCP-tool lane: what actually
+            # ate the allowance (search-prime / web-reader / zread).
+            for detail in row.get("usageDetails") or []:
+                if isinstance(detail, dict) and detail.get("modelCode"):
+                    try:
+                        amount = float(detail.get("usage") or 0)
+                    except (TypeError, ValueError):
+                        amount = 0
+                    if amount > 0:
+                        session_breakdown.append((str(detail["modelCode"]), amount))
+            session_breakdown.sort(key=lambda item: item[1], reverse=True)
             entry = limit_entry(
                 f"{number(row.get('number')) or 5}h window", percent, row.get("nextResetTime"), "Session"
             )
@@ -222,6 +234,10 @@ def scan(agent: str, limits_only: bool = False) -> dict:
         if entry:
             limits.append(entry)
     record["limits"] = limits
+    if session_breakdown:
+        record["usageStatusText"] = " \u00B7 ".join(
+            f"{model} {amount:g}" for model, amount in session_breakdown[:3]
+        )
 
     # Z.ai has no dedicated credit tab, so a funded pay-as-you-go wallet rides
     # its coding tab; Zhipu's ledger belongs to the Zhipu Credits tab alone.

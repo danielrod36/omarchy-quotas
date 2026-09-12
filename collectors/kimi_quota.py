@@ -196,6 +196,17 @@ def scan() -> dict:
         if entry:
             limits.append(entry)
 
+    # The booster wallet is the pay-as-you-go overflow lane beside the
+    # subscription: a money balance (UNIT_CURRENCY counts 1e8 per CNY).
+    booster = payload.get("boosterWallet") if isinstance(payload.get("boosterWallet"), dict) else {}
+    booster_balance = booster.get("balance") if isinstance(booster.get("balance"), dict) else {}
+    try:
+        booster_cny = float(booster_balance.get("amount") or 0) / 1e8
+    except (TypeError, ValueError):
+        booster_cny = 0.0
+    if booster_cny > 0:
+        record["usageStatusText"] = f"Booster \u00A5{booster_cny:.2f} available"
+
     # The monthly membership lane lives behind the web API: it needs the
     # kimi.com browser token (the kimi-auth cookie), not the coding OAuth
     # token. Optional — without it the tab simply shows 5h + weekly.

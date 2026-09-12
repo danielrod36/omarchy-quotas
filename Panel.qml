@@ -1347,9 +1347,13 @@ Panel {
 
       Text {
         textFormat: Text.PlainText
-        visible: row.halves.length !== 2 && text !== ""
+        visible: text !== ""
         width: parent.width
         text: {
+          // Split rows carry their lane labels inside the halves; only
+          // extra context (Kimi's booster balance) earns a caption there.
+          if (row.halves.length === 2)
+            return (row.entry && row.entry.usageStatusText) || ""
           if (row.bindingLimit) {
             var remainingMs = root.resetMsFor(row.bindingLimit)
             var caption = row.bindingLimit.title
