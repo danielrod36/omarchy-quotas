@@ -33,7 +33,7 @@ window is invented:
 | Zhipu Coding | Zhipu GLM Coding (bigmodel.cn) | omp credential `zhipu-coding-plan` → same API on `open.bigmodel.cn` |
 | Codex | ChatGPT Plus/Pro | stock `omarchy-agent-usage-codex` collector (app-server RPC) |
 | Kimi | Kimi for Coding | omp credential `kimi-code` (OAuth) → `api.kimi.com/coding/v1/usages` |
-| Ollama | Ollama Cloud | omp credential `ollama-cloud` (API key) → `ollama.com/api/usage` (plan buckets as usage fractions + 4-week activity cost) |
+| Ollama | Ollama Cloud | omp credential `ollama-cloud` (API key) → `ollama.com/api/usage` (plan buckets as usage fractions + 4-week activity cost) + `POST /api/me` (plan → tier label, derived `≈ $x of $y monthly credits`) |
 | Mistral | La Plateforme | console session → `admin.mistral.ai` credits + `console.mistral.ai` vibeUsage |
 | Aliyun | Bailian Token Plan | omp credential `alibaba-token-plan` (console cookie) → bailian console gateway |
 

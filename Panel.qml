@@ -1354,6 +1354,10 @@ Panel {
             var remainingMs = root.resetMsFor(row.bindingLimit)
             var caption = row.bindingLimit.title
             if (remainingMs > 0) caption += " \u00B7 resets in " + root.formatDuration(remainingMs)
+            // Providers whose endpoint carries extra context (Ollama's
+            // derived "$x of $y monthly credits") ride along here.
+            if (row.entry && row.entry.usageStatusText)
+              caption += " \u00B7 " + row.entry.usageStatusText
             return caption
           }
           if (row.balance) return root.balanceDetailText(row.balance)

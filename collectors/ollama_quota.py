@@ -42,6 +42,13 @@ SETUP = {
 }
 
 USAGE_URL = "https://ollama.com/api/usage"
+ME_URL = "https://ollama.com/api/me"
+
+# Published monthly usage credits per plan (ollama.com/pricing); the usage
+# endpoint reports fractions only, so dollars are derived from the plan the
+# account endpoint reports and always marked approximate.
+PLAN_CREDITS = {"pro": 60.0, "max": 300.0, "team": 1000.0}
+PLAN_LABELS = {"pro": "Ollama Pro", "max": "Ollama Max", "team": "Ollama Team"}
 
 # Shortest window first: it is the lane most likely to throttle, so it gets
 # the binding number; longer buckets arrive as secondary meters.
@@ -114,12 +121,42 @@ def scan() -> dict:
     record["limits"] = limits
     record["ready"] = True
 
+    # Plan enrichment: the account endpoint names the plan, the pricing
+    # table turns that into a monthly credit cap. Failure is non-fatal.
+    plan = ""
+    try:
+        me = http_json(ME_URL, method="POST", headers={"Authorization": f"Bearer {key}"})
+        plan = str(me.get("Plan") or "").strip().lower()
+    except Exception:  # noqa: BLE001 - enrichment only
+        plan = ""
+    if plan in PLAN_LABELS:
+        record["tierLabel"] = PLAN_LABELS[plan]
+
+    status = []
+    if plan in PLAN_CREDITS:
+        monthly = next(
+            (b for name, b in buckets.items() if "month" in str(name).lower()), None
+        )
+        usage = monthly.get("usage") if isinstance(monthly, dict) else None
+        try:
+            fraction = float(usage) if usage is not None else None
+        except (TypeError, ValueError):
+            fraction = None
+        if fraction is not None:
+            cap = PLAN_CREDITS[plan]
+            status.append(f"≈ ${fraction * cap:.2f} of ${cap:.0f} monthly credits")
+
     activity = payload.get("activity")
     if isinstance(activity, dict):
         cost = activity.get("cost")
-        cost_value = number(cost) if cost is not None else None
-        if cost_value is not None:
-            record["usageStatusText"] = f"≈ ${cost_value:.2f} usage in the last 4 weeks"
+        try:
+            cost_value = float(cost) if cost is not None else None
+        except (TypeError, ValueError):
+            cost_value = None
+        if cost_value is not None and cost_value > 0:
+            status.append(f"${cost_value:.2f} usage in the last 4 weeks")
+    if status:
+        record["usageStatusText"] = " · ".join(status)
 
     return record
 
