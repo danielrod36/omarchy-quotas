@@ -75,6 +75,7 @@ collect_now mistral python3 "$COLLECTORS_DIR/mistral_quota.py"
 collect_now deepseek python3 "$COLLECTORS_DIR/balance_quota.py" --agent deepseek
 collect_now openrouter python3 "$COLLECTORS_DIR/balance_quota.py" --agent openrouter
 collect_now mimo python3 "$COLLECTORS_DIR/balance_quota.py" --agent mimo
+collect_now ollama python3 "$COLLECTORS_DIR/ollama_quota.py"
 
 status=0
 for pid in "${pids[@]:-}"; do

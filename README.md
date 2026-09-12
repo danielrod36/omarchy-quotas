@@ -18,7 +18,7 @@ credential database, and everything else from
 One bar icon and one panel for every AI provider configured on this machine:
 coding-plan quota windows with resets, and prepaid credit ledgers for
 usage-based API keys. Based on Omarchy's stock `omarchy.agents` widget — same
-record contract, same panel — with collectors for ten providers. Provider
+record contract, same panel — with collectors for eleven providers. Provider
 chips and the hero use each provider's brand mark (`assets/<id>.svg`, with a
 `-light` twin for light surfaces; CodexBar's icon set where available).
 
@@ -33,6 +33,7 @@ window is invented:
 | Zhipu Coding | Zhipu GLM Coding (bigmodel.cn) | omp credential `zhipu-coding-plan` → same API on `open.bigmodel.cn` |
 | Codex | ChatGPT Plus/Pro | stock `omarchy-agent-usage-codex` collector (app-server RPC) |
 | Kimi | Kimi for Coding | omp credential `kimi-code` (OAuth) → `api.kimi.com/coding/v1/usages` |
+| Ollama | Ollama Cloud | omp credential `ollama-cloud` (API key) → `ollama.com/api/usage` (plan buckets as usage fractions + 4-week activity cost) |
 | Mistral | La Plateforme | console session → `admin.mistral.ai` credits + `console.mistral.ai` vibeUsage |
 | Aliyun | Bailian Token Plan | omp credential `alibaba-token-plan` (console cookie) → bailian console gateway |
 
